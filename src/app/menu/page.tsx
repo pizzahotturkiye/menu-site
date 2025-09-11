@@ -162,6 +162,17 @@ export default function MenuPage() {
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-stretch">
                       {category.menuItems.map((item) => (
                         <div key={item.id} className="glass-effect border border-red-900/30 rounded-xl p-5 flex flex-col h-full hover:border-orange-500/50 transition-all duration-300">
+                          {item.image && (
+                            <div className="relative mb-4 rounded-lg overflow-hidden border border-red-900/30 bg-black/30 aspect-[4/3]">
+                              <Image
+                                src={item.image}
+                                alt={item.nameTr}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              />
+                            </div>
+                          )}
                           <div className="flex justify-between items-start mb-3">
                             <h3 className="text-xl font-bold text-orange-400">{item.nameTr}</h3>
                             <div className="text-right">
