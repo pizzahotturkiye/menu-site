@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
-import { Pizza, Plus, Edit, Trash2, Save, X } from 'lucide-react'
+import { Pizza, Plus, Edit, Trash2, Save, X, LayoutDashboard, FolderTree, Search, Filter } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 import AuthGuard from '@/components/AuthGuard'
 
@@ -75,6 +75,10 @@ export default function AdminPage() {
   useEffect(() => {
     fetchData()
   }, [])
+
+  const [activeView, setActiveView] = useState<'dashboard' | 'categories' | 'products' | 'ingredients'>('dashboard')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterCategoryId, setFilterCategoryId] = useState<string>('')
 
   const fetchData = async () => {
     try {
@@ -265,6 +269,17 @@ export default function AdminPage() {
     setShowMenuItemForm(true)
   }
 
+  const categoryMap = new Map(categories.map((c) => [c.id, c]))
+  const allMenuItems: MenuItem[] = categories.flatMap((c) => c.menuItems)
+  const filteredMenuItems: MenuItem[] = allMenuItems.filter((item) => {
+    const query = searchQuery.toLowerCase().trim()
+    const matchesSearch = query === '' ||
+      item.nameTr.toLowerCase().includes(query) ||
+      (item.descriptionTr || '').toLowerCase().includes(query)
+    const matchesCategory = !filterCategoryId || item.categoryId === filterCategoryId
+    return matchesSearch && matchesCategory
+  })
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-red-950 flex items-center justify-center">
@@ -297,125 +312,223 @@ export default function AdminPage() {
         />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-          <div className="mb-12">
-            <h1 className="text-5xl font-bold pizza-title mb-4">🔥 Pizza Hot Yönetim</h1>
-            <p className="text-xl text-gray-300">Malatya'nın en ateşli pizza menüsünü yönetin</p>
-          </div>
+          <div className="flex gap-6">
+            {/* Sidebar */}
+            <aside className="hidden md:block w-64">
+              <div className="glass-effect border border-red-900/30 rounded-2xl p-4 space-y-2">
+                <button
+                  onClick={() => setActiveView('dashboard')}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${activeView === 'dashboard' ? 'bg-red-900/30 text-orange-400' : 'hover:bg-red-900/20 text-gray-300'}`}
+                >
+                  <LayoutDashboard className="h-5 w-5" />
+                  <span>Dashboard</span>
+                </button>
+                <button
+                  onClick={() => setActiveView('categories')}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${activeView === 'categories' ? 'bg-red-900/30 text-orange-400' : 'hover:bg-red-900/20 text-gray-300'}`}
+                >
+                  <FolderTree className="h-5 w-5" />
+                  <span>Kategoriler</span>
+                </button>
+                <button
+                  onClick={() => setActiveView('products')}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${activeView === 'products' ? 'bg-red-900/30 text-orange-400' : 'hover:bg-red-900/20 text-gray-300'}`}
+                >
+                  <Pizza className="h-5 w-5" />
+                  <span>Ürünler</span>
+                </button>
+                <button
+                  onClick={() => setActiveView('ingredients')}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${activeView === 'ingredients' ? 'bg-red-900/30 text-orange-400' : 'hover:bg-red-900/20 text-gray-300'}`}
+                >
+                  <Filter className="h-5 w-5 rotate-90" />
+                  <span>Malzemeler</span>
+                </button>
+              </div>
+            </aside>
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-6 mb-12">
-            <button
-              onClick={() => setShowCategoryForm(true)}
-              className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-4 rounded-xl hover:from-red-500 hover:to-orange-500 transition-all duration-300 flex items-center gap-3 font-bold glow-effect transform hover:scale-105"
-            >
-              <Plus className="h-5 w-5" />
-              🍕 Kategori Ekle
-            </button>
-            <button
-              onClick={() => setShowMenuItemForm(true)}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-xl hover:from-green-500 hover:to-emerald-500 transition-all duration-300 flex items-center gap-3 font-bold glow-effect transform hover:scale-105"
-            >
-              <Plus className="h-5 w-5" />
-              🌶️ Ürün Ekle
-            </button>
-            <button
-              onClick={() => setShowIngredientForm(true)}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:from-blue-500 hover:to-purple-500 transition-all duration-300 flex items-center gap-3 font-bold glow-effect transform hover:scale-105"
-            >
-              <Plus className="h-5 w-5" />
-              🧄 Malzeme Ekle
-            </button>
-          </div>
+            {/* Main content */}
+            <section className="flex-1">
+              <div className="mb-8">
+                <h1 className="text-4xl md:text-5xl font-bold pizza-title mb-2">Pizza Hot Yönetim paneli</h1>
+                <p className="text-gray-300">Menün, kategoriler ve malzemeleri tek panelden yönet.</p>
+              </div>
 
-          {/* Categories List */}
-          <div className="space-y-8">
-            {categories.map((category) => (
-              <div key={category.id} className="glass-effect rounded-2xl overflow-hidden border border-red-900/30">
-                <div className="bg-gradient-to-r from-red-600 to-orange-600 p-6 flex justify-between items-center">
-                  <div>
-                    <h3 className="text-2xl font-bold text-white">{category.nameTr}</h3>
-                    {category.descriptionTr && (
-                      <p className="text-orange-100 mt-2">{category.descriptionTr}</p>
-                    )}
+              {/* Dashboard */}
+              {activeView === 'dashboard' && (
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="glass-effect border border-red-900/30 rounded-2xl p-6">
+                      <p className="text-gray-400 mb-2">Toplam Kategori</p>
+                      <p className="text-4xl font-extrabold text-orange-400">{categories.length}</p>
+                    </div>
+                    <div className="glass-effect border border-red-900/30 rounded-2xl p-6">
+                      <p className="text-gray-400 mb-2">Toplam Ürün</p>
+                      <p className="text-4xl font-extrabold text-yellow-400">{allMenuItems.length}</p>
+                    </div>
+                    <div className="glass-effect border border-red-900/30 rounded-2xl p-6">
+                      <p className="text-gray-400 mb-2">Toplam Malzeme</p>
+                      <p className="text-4xl font-extrabold text-emerald-400">{ingredients.length}</p>
+                    </div>
                   </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => editCategory(category)}
-                      className="p-3 text-white hover:bg-white/20 rounded-xl transition-all duration-300 group"
-                    >
-                      <Edit className="h-5 w-5 group-hover:scale-110" />
+
+                  <div className="flex flex-wrap gap-4">
+                    <button onClick={() => setShowCategoryForm(true)} className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-5 py-3 rounded-lg hover:from-red-500 hover:to-orange-500 transition-all duration-300 flex items-center gap-2 font-semibold">
+                      <Plus className="h-5 w-5" /> Yeni Kategori
                     </button>
-                    <button
-                      onClick={() => deleteCategory(category.id)}
-                      className="p-3 text-white hover:bg-red-500/50 rounded-xl transition-all duration-300 group"
-                    >
-                      <Trash2 className="h-5 w-5 group-hover:scale-110" />
+                    <button onClick={() => setShowMenuItemForm(true)} className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-5 py-3 rounded-lg hover:from-green-500 hover:to-emerald-500 transition-all duration-300 flex items-center gap-2 font-semibold">
+                      <Plus className="h-5 w-5" /> Yeni Ürün
+                    </button>
+                    <button onClick={() => setShowIngredientForm(true)} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-3 rounded-lg hover:from-blue-500 hover:to-purple-500 transition-all duration-300 flex items-center gap-2 font-semibold">
+                      <Plus className="h-5 w-5" /> Yeni Malzeme
                     </button>
                   </div>
                 </div>
-              
-                <div className="p-6">
-                  {category.menuItems.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Pizza className="h-12 w-12 text-orange-400 mx-auto mb-4" />
-                      <p className="text-gray-400 text-lg">Bu kategoride henüz ürün bulunmuyor</p>
+              )}
+
+              {/* Categories */}
+              {activeView === 'categories' && (
+                <div className="space-y-6">
+                  <div className="flex flex-wrap gap-3 items-center justify-between">
+                    <h2 className="text-2xl font-bold text-orange-400">Kategoriler</h2>
+                    <div className="flex gap-3">
+                      <button onClick={() => setShowCategoryForm(true)} className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-2 rounded-lg hover:from-red-500 hover:to-orange-500 flex items-center gap-2">
+                        <Plus className="h-4 w-4" /> Yeni Kategori
+                      </button>
                     </div>
+                  </div>
+
+                  {categories.length === 0 ? (
+                    <div className="glass-effect p-8 rounded-xl border border-red-900/30 text-center text-gray-300">Henüz kategori yok</div>
                   ) : (
-                    <div className="grid gap-6">
-                      {category.menuItems.map((item) => (
-                        <div key={item.id} className="glass-effect border border-red-900/20 rounded-xl p-6 hover:border-orange-500/40 transition-all duration-300">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h4 className="text-xl font-bold text-orange-400 mb-2">{item.nameTr}</h4>
-                              <p className="text-gray-300 mb-3 leading-relaxed">{item.descriptionTr}</p>
-                              <p className="text-2xl font-bold text-yellow-400">₺{item.price.toFixed(2)}</p>
-                              <div className="flex gap-2 mt-3">
-                                {item.isVegetarian && (
-                                  <span className="px-3 py-1 bg-green-600/20 text-green-400 rounded-full text-xs border border-green-600/30">
-                                    🌱 Vejetaryen
-                                  </span>
-                                )}
-                                {item.isVegan && (
-                                  <span className="px-3 py-1 bg-emerald-600/20 text-emerald-400 rounded-full text-xs border border-emerald-600/30">
-                                    🌿 Vegan
-                                  </span>
-                                )}
-                                {item.isGlutenFree && (
-                                  <span className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-xs border border-blue-600/30">
-                                    🛡️ Glutensiz
-                                  </span>
-                                )}
-                              </div>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {categories.map((category) => (
+                        <div key={category.id} className="glass-effect border border-red-900/30 rounded-xl p-5 hover:border-orange-500/40 transition-all">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-white">{category.nameTr}</h3>
+                              {category.descriptionTr && <p className="text-sm text-gray-400 mt-1 line-clamp-2">{category.descriptionTr}</p>}
                             </div>
-                            <div className="flex gap-3 ml-6">
-                              <button
-                                onClick={() => editMenuItem(item)}
-                                className="p-3 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all duration-300 group border border-blue-500/30"
-                              >
-                                <Edit className="h-5 w-5 group-hover:scale-110" />
+                            <div className="flex gap-2 ml-4">
+                              <button onClick={() => editCategory(category)} className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg border border-blue-500/30">
+                                <Edit className="h-4 w-4" />
                               </button>
-                              <button
-                                onClick={() => deleteMenuItem(item.id)}
-                                className="p-3 text-red-400 hover:bg-red-500/20 rounded-xl transition-all duration-300 group border border-red-500/30"
-                              >
-                                <Trash2 className="h-5 w-5 group-hover:scale-110" />
+                              <button onClick={() => deleteCategory(category.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg border border-red-500/30">
+                                <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
+                          </div>
+                          <div className="mt-4 flex justify-between items-center">
+                            <span className="text-xs text-gray-400">{category.menuItems.length} ürün</span>
+                            <button onClick={() => { setActiveView('products'); setFilterCategoryId(category.id) }} className="text-sm text-orange-400 hover:text-orange-300">Ürünleri Gör</button>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
-            </div>
-          ))}
+              )}
+
+              {/* Products */}
+              {activeView === 'products' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <h2 className="text-2xl font-bold text-orange-400">Ürünler</h2>
+                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                      <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Search className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Ürünlerde ara..."
+                          className="w-full pl-10 pr-3 py-2 rounded-lg bg-gray-900/50 text-gray-100 placeholder-gray-500 border border-red-900/30 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        />
+                      </div>
+                      <select
+                        value={filterCategoryId}
+                        onChange={(e) => setFilterCategoryId(e.target.value)}
+                        className="sm:w-56 w-full rounded-lg bg-gray-900/50 text-gray-100 border border-red-900/30 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      >
+                        <option value="">Tüm Kategoriler</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>{c.nameTr}</option>
+                        ))}
+                      </select>
+                      <button onClick={() => setShowMenuItemForm(true)} className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-2 rounded-lg hover:from-red-500 hover:to-orange-500 flex items-center gap-2">
+                        <Plus className="h-4 w-4" /> Yeni Ürün
+                      </button>
+                    </div>
+                  </div>
+
+                  {filteredMenuItems.length === 0 ? (
+                    <div className="glass-effect p-8 rounded-xl border border-red-900/30 text-center text-gray-300">Sonuç bulunamadı</div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredMenuItems.map((item) => (
+                        <div key={item.id} className="glass-effect border border-red-900/30 rounded-xl p-5 hover:border-orange-500/40 transition-all">
+                          <div className="flex items-start justify-between">
+                            <div className="min-w-0">
+                              <h3 className="text-lg font-bold text-orange-400 truncate">{item.nameTr}</h3>
+                              <p className="text-sm text-gray-400 truncate">{categoryMap.get(item.categoryId)?.nameTr || '—'}</p>
+                            </div>
+                            <span className="text-yellow-400 font-bold ml-4">₺{item.price.toFixed(2)}</span>
+                          </div>
+                          {item.descriptionTr && <p className="text-sm text-gray-300 mt-2 line-clamp-2">{item.descriptionTr}</p>}
+                          <div className="mt-4 flex justify-end gap-2">
+                            <button onClick={() => editMenuItem(item)} className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg border border-blue-500/30">
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => deleteMenuItem(item.id)} className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg border border-red-500/30">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Ingredients */}
+              {activeView === 'ingredients' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-orange-400">Malzemeler</h2>
+                    <button onClick={() => setShowIngredientForm(true)} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-500 hover:to-purple-500 flex items-center gap-2">
+                      <Plus className="h-4 w-4" /> Yeni Malzeme
+                    </button>
+                  </div>
+                  {ingredients.length === 0 ? (
+                    <div className="glass-effect p-8 rounded-xl border border-red-900/30 text-center text-gray-300">Henüz malzeme yok</div>
+                  ) : (
+                    <div className="glass-effect border border-red-900/30 rounded-xl overflow-hidden">
+                      <div className="grid grid-cols-12 px-4 py-3 text-sm text-gray-400 border-b border-red-900/30">
+                        <div className="col-span-8">Ad</div>
+                        <div className="col-span-4">Alerjen</div>
+                      </div>
+                      <div className="divide-y divide-red-900/30">
+                        {ingredients.map((ing) => (
+                          <div key={ing.id} className="grid grid-cols-12 px-4 py-3 text-sm">
+                            <div className="col-span-8 text-gray-200">{ing.nameTr}</div>
+                            <div className="col-span-4">{ing.allergen ? <span className="px-2 py-1 rounded bg-red-600/20 text-red-300 border border-red-600/30 text-xs">Alerjen</span> : <span className="px-2 py-1 rounded bg-emerald-600/20 text-emerald-300 border border-emerald-600/30 text-xs">Güvenli</span>}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+          </div>
         </div>
       </div>
 
       {/* Category Form Modal */}
       {showCategoryForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="glass-effect border border-red-900/30 rounded-lg p-6 w-full max-w-md text-gray-100">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">
                 {editingCategory ? 'Kategori Düzenle' : 'Yeni Kategori'}
@@ -426,7 +539,7 @@ export default function AdminPage() {
                   setEditingCategory(null)
                   reset()
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-300 hover:text-white"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -434,67 +547,67 @@ export default function AdminPage() {
             
             <form onSubmit={handleSubmit(onSubmitCategory)} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   İngilizce İsim
                 </label>
                 <input
                   {...register('name', { required: true })}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                   placeholder="Category Name"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Türkçe İsim
                 </label>
                 <input
                   {...register('nameTr', { required: true })}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                   placeholder="Kategori Adı"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   İngilizce Açıklama
                 </label>
                 <textarea
                   {...register('description')}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                   rows={3}
                   placeholder="Category Description"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Türkçe Açıklama
                 </label>
                 <textarea
                   {...register('descriptionTr')}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                   rows={3}
                   placeholder="Kategori Açıklaması"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Kategori Resmi
                 </label>
                 <input
                   type="file"
                   id="category-image"
                   accept="image/*"
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-red-600 file:text-white"
                 />
               </div>
               
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 text-white py-2 rounded hover:from-red-500 hover:to-orange-500 flex items-center justify-center gap-2"
                 >
                   <Save className="h-4 w-4" />
                   {editingCategory ? 'Güncelle' : 'Kaydet'}
@@ -506,7 +619,7 @@ export default function AdminPage() {
                     setEditingCategory(null)
                     reset()
                   }}
-                  className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
+                  className="flex-1 bg-gray-700 text-white py-2 rounded hover:bg-gray-600"
                 >
                   İptal
                 </button>
@@ -518,8 +631,8 @@ export default function AdminPage() {
 
       {/* Menu Item Form Modal */}
       {showMenuItemForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="glass-effect border border-red-900/30 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto text-gray-100">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">
                 {editingMenuItem ? 'Ürün Düzenle' : 'Yeni Ürün'}
@@ -530,7 +643,7 @@ export default function AdminPage() {
                   setEditingMenuItem(null)
                   reset()
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-300 hover:text-white"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -539,23 +652,23 @@ export default function AdminPage() {
             <form onSubmit={handleSubmit(onSubmitMenuItem)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     İngilizce İsim
                   </label>
                   <input
                     {...register('name', { required: true })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                     placeholder="Product Name"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Türkçe İsim
                   </label>
                   <input
                     {...register('nameTr', { required: true })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                     placeholder="Ürün Adı"
                   />
                 </div>
@@ -563,25 +676,25 @@ export default function AdminPage() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Fiyat (₺)
                   </label>
                   <input
                     type="number"
                     step="0.01"
                     {...register('price', { required: true, min: 0 })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                     placeholder="0.00"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
                     Kategori
                   </label>
                   <select
                     {...register('categoryId', { required: true })}
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100"
                   >
                     <option value="">Kategori Seçin</option>
                     {categories.map((category) => (
@@ -594,35 +707,35 @@ export default function AdminPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   İngilizce Açıklama
                 </label>
                 <textarea
                   {...register('description')}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                   rows={3}
                   placeholder="Product Description"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Türkçe Açıklama
                 </label>
                 <textarea
                   {...register('descriptionTr')}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                   rows={3}
                   placeholder="Ürün Açıklaması"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Özellikler
                 </label>
                 <div className="flex gap-4">
-                  <label className="flex items-center text-gray-700">
+                  <label className="flex items-center text-gray-300">
                     <input
                       type="checkbox"
                       {...register('isVegetarian')}
@@ -630,7 +743,7 @@ export default function AdminPage() {
                     />
                     Vejetaryen
                   </label>
-                  <label className="flex items-center text-gray-700">
+                  <label className="flex items-center text-gray-300">
                     <input
                       type="checkbox"
                       {...register('isVegan')}
@@ -638,7 +751,7 @@ export default function AdminPage() {
                     />
                     Vegan
                   </label>
-                  <label className="flex items-center text-gray-700">
+                  <label className="flex items-center text-gray-300">
                     <input
                       type="checkbox"
                       {...register('isGlutenFree')}
@@ -650,40 +763,40 @@ export default function AdminPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Malzemeler
                 </label>
-                <div className="max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
+                <div className="max-h-32 overflow-y-auto border border-red-900/30 rounded p-2 bg-gray-900/40">
                   {ingredients.map((ingredient) => (
-                    <label key={ingredient.id} className="flex items-center mb-1 text-gray-700">
+                    <label key={ingredient.id} className="flex items-center mb-1 text-gray-300">
                       <input
                         type="checkbox"
                         value={ingredient.id}
                         {...register('ingredients')}
                         className="mr-2"
                       />
-                      {ingredient.nameTr} {ingredient.allergen && <span className="text-red-500">*</span>}
+                      {ingredient.nameTr} {ingredient.allergen && <span className="text-red-400">*</span>}
                     </label>
                   ))}
                 </div>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Ürün Resmi
                 </label>
                 <input
                   type="file"
                   id="menuitem-image"
                   accept="image/*"
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-red-600 file:text-white"
                 />
               </div>
               
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 text-white py-2 rounded hover:from-red-500 hover:to-orange-500 flex items-center justify-center gap-2"
                 >
                   <Save className="h-4 w-4" />
                   {editingMenuItem ? 'Güncelle' : 'Kaydet'}
@@ -695,7 +808,7 @@ export default function AdminPage() {
                     setEditingMenuItem(null)
                     reset()
                   }}
-                  className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
+                  className="flex-1 bg-gray-700 text-white py-2 rounded hover:bg-gray-600"
                 >
                   İptal
                 </button>
@@ -707,8 +820,8 @@ export default function AdminPage() {
 
       {/* Ingredient Form Modal */}
       {showIngredientForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="glass-effect border border-red-900/30 rounded-lg p-6 w-full max-w-md text-gray-100">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Yeni Malzeme</h2>
               <button
@@ -716,7 +829,7 @@ export default function AdminPage() {
                   setShowIngredientForm(false)
                   resetIngredient()
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-300 hover:text-white"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -724,29 +837,29 @@ export default function AdminPage() {
             
             <form onSubmit={handleIngredientSubmit(onSubmitIngredient)} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   İngilizce İsim
                 </label>
                 <input
                   {...registerIngredient('name', { required: true })}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                   placeholder="Ingredient Name"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Türkçe İsim
                 </label>
                 <input
                   {...registerIngredient('nameTr', { required: true })}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-red-900/30 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-900/50 text-gray-100 placeholder-gray-500"
                   placeholder="Malzeme Adı"
                 />
               </div>
               
               <div>
-                <label className="flex items-center text-gray-700">
+                <label className="flex items-center text-gray-300">
                   <input
                     type="checkbox"
                     {...registerIngredient('allergen')}
@@ -759,7 +872,7 @@ export default function AdminPage() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 text-white py-2 rounded hover:from-red-500 hover:to-orange-500 flex items-center justify-center gap-2"
                 >
                   <Save className="h-4 w-4" />
                   Kaydet
@@ -770,7 +883,7 @@ export default function AdminPage() {
                     setShowIngredientForm(false)
                     resetIngredient()
                   }}
-                  className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
+                  className="flex-1 bg-gray-700 text-white py-2 rounded hover:bg-gray-600"
                 >
                   İptal
                 </button>
@@ -779,7 +892,6 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-      </div>
     </AuthGuard>
   )
 }
