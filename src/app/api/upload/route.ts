@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile } from 'fs/promises'
-import { join } from 'path'
-import { mkdir } from 'fs/promises'
 import { withAdminAuth, AuthenticatedRequest } from '@/lib/middleware-auth'
+import { v2 as cloudinary } from 'cloudinary'
+import { Readable } from 'node:stream'
+import { promisify } from 'node:util'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+})
 
 export const POST = withAdminAuth(async (request: AuthenticatedRequest) => {
   try {
@@ -13,27 +19,34 @@ export const POST = withAdminAuth(async (request: AuthenticatedRequest) => {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    // Convert File to Buffer
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads')
-    try {
-      await mkdir(uploadsDir, { recursive: true })
-    } catch (error) {
-      // Directory might already exist
-    }
+    // Upload to Cloudinary using upload_stream
+    const uploadStream = (): Promise<{ secure_url: string }> =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'menu-site',
+            resource_type: 'image',
+            overwrite: false,
+            unique_filename: true
+          },
+          (error: any, result: any) => {
+            if (error || !result) return reject(error)
+            resolve({ secure_url: result.secure_url })
+          }
+        )
 
-    // Generate unique filename
-    const timestamp = Date.now()
-    const filename = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
-    const filepath = join(uploadsDir, filename)
+        Readable.from(buffer).pipe(stream)
+      })
 
-    await writeFile(filepath, buffer)
+    const { secure_url } = await uploadStream()
 
     return NextResponse.json({ 
       message: 'File uploaded successfully',
-      filename: `/uploads/${filename}`
+      filename: secure_url
     })
   } catch (error) {
     console.error('Error uploading file:', error)

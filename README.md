@@ -34,3 +34,24 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Environment Variables
+
+Create a `.env` file based on the following keys:
+
+```env
+# Database (PostgreSQL)
+# Example: postgresql://USER:PASSWORD@HOST:PORT/DBNAME?schema=public
+DATABASE_URL="postgresql://user:password@localhost:5432/menu_db?schema=public"
+
+# Auth
+# Use a long, random secret in production (>= 32 chars)
+JWT_SECRET="change-me-to-a-strong-random-secret"
+
+# Cloudinary (Image uploads)
+CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
+```
+
+On Vercel, add these under Project Settings → Environment Variables, then redeploy.

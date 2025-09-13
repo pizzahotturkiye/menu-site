@@ -21,7 +21,7 @@ export const config = {
 
 // Validate required environment variables
 export function validateConfig() {
-  const required = ['JWT_SECRET']
+  const required = ['JWT_SECRET', 'DATABASE_URL', 'CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET']
   const missing = required.filter(key => !process.env[key])
   
   if (missing.length > 0 && config.app.isProduction) {

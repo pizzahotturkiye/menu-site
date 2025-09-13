@@ -172,7 +172,7 @@ export default function LoginPage() {
 
             <div className="mt-4 p-4 glass-effect border border-red-900/30 rounded-md">
               <p className="text-sm text-gray-300">
-                <strong>E-posta:</strong> admin@pizzapalace.com<br />
+                <strong>E-posta:</strong> admin@pizzahot.com<br />
                 <strong>Şifre:</strong> admin123
               </p>
             </div>
