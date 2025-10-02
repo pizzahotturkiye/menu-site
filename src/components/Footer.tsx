@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Pizza, MapPin, Phone, Mail, Clock, Instagram, Facebook, Twitter, Flame } from "lucide-react"
+import { Pizza, MapPin, Phone, Mail, Clock, Instagram, Flame } from "lucide-react"
 
 export default function Footer() {
   return (
@@ -60,24 +60,33 @@ export default function Footer() {
             <div className="flex justify-center md:justify-end space-x-4 mb-6">
               <a 
                 href="#" 
-                className="bg-gradient-to-r from-red-600 to-orange-600 p-4 rounded-full text-white hover:from-red-500 hover:to-orange-500 transition-all duration-300 transform hover:scale-110 glow-effect"
+                className="bg-gradient-to-r from-red-600 to-orange-600 p-2 rounded-full text-white hover:from-red-500 hover:to-orange-500 transition-all duration-300 transform hover:scale-110 glow-effect flex items-center justify-center"
                 aria-label="Instagram"
               >
-                <Instagram className="h-6 w-6" />
+                <Instagram className="h-10 w-10" />
               </a>
               <a 
-                href="#" 
-                className="bg-gradient-to-r from-red-600 to-orange-600 p-4 rounded-full text-white hover:from-red-500 hover:to-orange-500 transition-all duration-300 transform hover:scale-110 glow-effect"
-                aria-label="Facebook"
+                href="https://getir.com/restaurant=689e302dbd2179869343bfb5&ownerService=2" 
+                className="bg-gradient-to-r from-purple-600 to-purple-500 p-2 rounded-full text-white hover:from-purple-500 hover:to-purple-400 transition-all duration-300 transform hover:scale-110 glow-effect flex items-center justify-center"
+                aria-label="Getir"
               >
-                <Facebook className="h-6 w-6" />
+                <Image src="/getir-seeklogo.svg" alt="Getir" width={40} height={40} className="h-10 w-10 brightness-0 invert object-contain" />
               </a>
               <a 
-                href="#" 
-                className="bg-gradient-to-r from-red-600 to-orange-600 p-4 rounded-full text-white hover:from-red-500 hover:to-orange-500 transition-all duration-300 transform hover:scale-110 glow-effect"
-                aria-label="Twitter"
+                href="https://tgoyemek.com/restoranlar/387394" 
+                className="bg-gradient-to-r from-orange-500 to-orange-400 p-2 rounded-full text-white hover:from-orange-400 hover:to-orange-300 transition-all duration-300 transform hover:scale-110 glow-effect flex items-center justify-center overflow-hidden"
+                aria-label="TrendyolGo"
               >
-                <Twitter className="h-6 w-6" />
+                <div className="h-10 w-10 flex items-center justify-center">
+                  <Image src="/trendyol-go-seeklogo-2.svg" alt="TrendyolGo" width={100} height={100} className="brightness-0 invert object-contai scale-[3]" />
+                </div>
+              </a>
+              <a 
+                href="https://yemek.go.link/PmnuK " 
+                className="bg-gradient-to-r from-red-500 to-pink-500 p-2 rounded-full text-white hover:from-red-400 hover:to-pink-400 transition-all duration-300 transform hover:scale-110 glow-effect flex items-center justify-center"
+                aria-label="YemekSepeti"
+              >
+                <Image src="/yemeksepeti-seeklogo.svg" alt="YemekSepeti" width={40} height={40} className="h-10 w-10 brightness-0 invert object-contain" />
               </a>
             </div>
             <Link 
