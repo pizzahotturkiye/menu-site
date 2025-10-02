@@ -73,19 +73,7 @@ export default function Navbar() {
                 isActive('/menu') ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
               }`}></span>
             </Link>
-            <Link 
-              href="/admin" 
-              className={`font-medium transition-all duration-300 relative group ${
-                isActive('/admin') 
-                  ? 'text-orange-400' 
-                  : 'text-gray-300 hover:text-orange-400'
-              }`}
-            >
-              Yönetim
-              <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-red-500 to-orange-500 transition-transform duration-300 ${
-                isActive('/admin') ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-              }`}></span>
-            </Link>
+            
           </nav>
 
           {/* Mobile Hamburger Button */}
@@ -128,17 +116,7 @@ export default function Navbar() {
               >
                 Menü
               </Link>
-              <Link 
-                href="/admin" 
-                onClick={closeMenu}
-                className={`block px-3 py-2 rounded-md text-base font-medium transition-all duration-300 ${
-                  isActive('/admin') 
-                    ? 'text-orange-400 bg-red-900/30' 
-                    : 'text-gray-300 hover:text-orange-400 hover:bg-red-900/20'
-                }`}
-              >
-                Yönetim
-              </Link>
+            
             </div>
           </div>
         )}
