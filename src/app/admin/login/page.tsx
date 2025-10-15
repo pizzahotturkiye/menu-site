@@ -62,9 +62,9 @@ export default function LoginPage() {
           }
         }}
       />
-      
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
+        <div className="flex justify-center items-center">
           <Pizza className="h-12 w-12 text-orange-500" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold pizza-title">
@@ -157,26 +157,6 @@ export default function LoginPage() {
               </button>
             </div>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 glass-effect rounded text-gray-300">
-                  Demo Giriş Bilgileri
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-4 p-4 glass-effect border border-red-900/30 rounded-md">
-              <p className="text-sm text-gray-300">
-                <strong>E-posta:</strong> admin@pizzahot.com<br />
-                <strong>Şifre:</strong> admin123
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
